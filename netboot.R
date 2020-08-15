@@ -1,7 +1,26 @@
 # create random table of nsim replicates
 nsim <- 100
 net.data <- AD1250cer
-x <- AD1250sim
+
+sim.mat <- function(x) {
+  names <- row.names(x)
+  x <- na.omit(x)
+  x <- prop.table(as.matrix(x),1)*100
+  rd <- dim(x)[1]
+  results <- matrix(0,rd,rd)
+  for (s1 in 1:rd) {
+    for (s2 in 1:rd) {
+      x1Temp <- as.numeric(x[s1, ])
+      x2Temp <- as.numeric(x[s2, ])
+      results[s1,s2] <- 200 - (sum(abs(x1Temp - x2Temp)))}}
+  row.names(results) <- names
+  colnames(results) <- names
+  results <- results/200
+  results <- round(results,3)
+  return(results)}
+
+x <- sim.mat(net.data)
+
 net.x <- event2dichot(x,method='absolute',thresh=0.749)
 cut <- 20
 
@@ -22,11 +41,9 @@ if (data.rowsums[i] > cut) {data.rowsums[i] <- cut}}
 data.rowsums <- round(data.rowsums,0)
 
 data.sim <- rmultinom(nsim,data.rowsums[1],prob=net.data[1,])
-#data.sim <- rmultinom(nsim,cut,prob=net.data[1,])
 
 for (i in 2:nrow(net.data)) {
 data.sim <- cbind(data.sim,rmultinom(nsim,data.rowsums[i],prob=net.data[i,]))}
-#data.sim <- cbind(data.sim,rmultinom(nsim,cut,prob=net.data[i,]))}
 
 data.sim <- data.sim
 data.sim <- t(data.sim)
